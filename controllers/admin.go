@@ -52,6 +52,14 @@ func SignupAdmin(C *gin.Context) {
 	})
 }
 
+// @Summary		API to Login for admins
+// @Description	admin login
+// @Tags			admin
+// @Accept			json
+// @Produce		json
+// @Param			admin	body		models.Admin	true	"Admin ID"
+// @Success		200		{object}	models.Admin
+// @Router			/admin/login [post]
 func LoginAdmin(C *gin.Context) {
 	// get email and password required off the body
 	var body struct {
@@ -108,14 +116,6 @@ func LoginAdmin(C *gin.Context) {
 	})
 
 	// return
-}
-
-func ValidateAdmin(c *gin.Context) {
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "admin is logged in.",
-	})
-
 }
 
 func ListOrders(c *gin.Context) {

@@ -3,32 +3,19 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/francischacko/ecommerce/initializers"
+	"github.com/francischacko/ecommerce/middlewares"
 	"github.com/francischacko/ecommerce/models"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
 	"github.com/segmentio/ksuid"
 )
 
 func PlaceOrder(c *gin.Context) {
 
-	tokenString, err := c.Cookie("Authorization")
-	if err != nil {
-		c.AbortWithStatus(http.StatusUnauthorized)
-	}
-	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Don't forget to validate the alg is what you expect:
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte(os.Getenv("SECRET")), nil
-	})
+	id := middlewares.User(c)
+	ToInt := int(id)
 
-	claims := token.Claims.(jwt.MapClaims)
-	GetId := claims["sub"]
-	ToInt = int(GetId.(float64))
 	var body struct {
 		UserId        int
 		OrderId       string
@@ -104,4 +91,34 @@ func PlaceOrder(c *gin.Context) {
 	// initializers.DB.Raw("delete id from shopping_cart_items where cid=?",ToInt)
 	c.JSON(http.StatusOK, gin.H{"message": "order is placed and inventory have been updated"})
 
+}
+
+func ReturnOrder(c *gin.Context) {
+	toInt := middlewares.User(c)
+	proid := c.Query("productid")
+	var Pro int
+	initializers.DB.Raw("select total from shop_orders where product_item_id=? and user_id=?", proid, toInt).Scan(&Pro)
+
+	walletTable := models.Wallet{
+		UserId:        int(toInt),
+		WalletBalance: Pro,
+	}
+	result := initializers.DB.Create(&walletTable)
+
+	if result.Error != nil {
+		c.JSON(400, gin.H{
+			"error": "failed to create wallet table",
+		})
+		return
+	}
+	var sto int
+	initializers.DB.Raw("select quantity from shop_orders where product_item_id=? and user_id=?", proid, toInt).Scan(&sto)
+	var prevq int
+	initializers.DB.Raw("select stocks from products where id=?", proid).Scan(&prevq)
+	new := sto + prevq
+	var proq models.Product
+	initializers.DB.Raw("update products set stocks=? where id=?", new, proid).Scan(&proq)
+	c.JSON(200, gin.H{
+		"msg": "product returned and amount updated to wallet",
+	})
 }

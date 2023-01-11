@@ -3,12 +3,11 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/francischacko/ecommerce/initializers"
+	"github.com/francischacko/ecommerce/middlewares"
 	"github.com/francischacko/ecommerce/models"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
 )
 
 var ToInt int
@@ -18,22 +17,8 @@ var Qty int
 
 func AddToCart(c *gin.Context) {
 
-	tokenString, err := c.Cookie("Authorization")
-	if err != nil {
-		c.AbortWithStatus(http.StatusUnauthorized)
-	}
-	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Don't forget to validate the alg is what you expect:
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte(os.Getenv("SECRET")), nil
-	})
-
-	claims := token.Claims.(jwt.MapClaims)
-	GetId := claims["sub"]
-	ToInt = int(GetId.(float64))
-
+	id := middlewares.User(c)
+	ToInt := int(id)
 	cart := models.ShoppingCart{
 		UserId: ToInt,
 		Cid:    ToInt,
@@ -95,26 +80,14 @@ func AddToCart(c *gin.Context) {
 	initializers.DB.Raw("SELECT quantity FROM shopping_cart_items WHERE  product_item_id=?", body.ProductItemId).Scan(&Qty)
 	var crtname models.ShoppingCartItem
 	initializers.DB.Raw("update shopping_cart_items set product_name=? where product_item_id=?", pname, body.ProductItemId).Scan(&crtname)
-	UpdateTotal(c)
+
+	var update models.ShoppingCartItem
+	resulta := Price * Qty
+	initializers.DB.Raw("update shopping_cart_items set total=? where id in(select max(id) from shopping_cart_items)", resulta).Scan(&update)
 }
 
 func ToRemoveCart(c *gin.Context) {
-	tokenString, err := c.Cookie("Authorization")
-	if err != nil {
-		c.AbortWithStatus(http.StatusUnauthorized)
-	}
-	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Don't forget to validate the alg is what you expect:
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte(os.Getenv("SECRET")), nil
-	})
-
-	claims := token.Claims.(jwt.MapClaims)
-	GetId := claims["sub"]
-	toInt := GetId.(float64)
-
+	toInt := middlewares.User(c)
 	initializers.DB.Raw("DELETE cid FROM shopping_carts  WHERE user_id=?", toInt)
 }
 
@@ -137,31 +110,9 @@ func QuantityUpdation(c *gin.Context) {
 	}
 
 }
-func UpdateTotal(c *gin.Context) {
-
-	var update models.ShoppingCartItem
-	result := Price * Qty
-	initializers.DB.Raw("update shopping_cart_items set total=? where id in(select max(id) from shopping_cart_items)", result).Scan(&update)
-}
 
 func ListCart(c *gin.Context) {
-
-	tokenString, err := c.Cookie("Authorization")
-	if err != nil {
-		c.AbortWithStatus(http.StatusUnauthorized)
-	}
-	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Don't forget to validate the alg is what you expect:
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte(os.Getenv("SECRET")), nil
-	})
-
-	claims := token.Claims.(jwt.MapClaims)
-	GetId := claims["sub"]
-	toInt := GetId.(float64)
-
+	toInt := middlewares.User(c)
 	var cartitem []models.ShoppingCartItem
 	initializers.DB.Raw("select * from shopping_cart_items where cid=?", toInt).Scan(&cartitem)
 	c.JSON(http.StatusOK, gin.H{

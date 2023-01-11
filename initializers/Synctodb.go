@@ -17,6 +17,7 @@ func SyncDatabase() {
 		&models.Charge{},
 		&models.Coupen{},
 		&models.TotalOrders{},
+		&models.Wallet{},
 	)
 
 }

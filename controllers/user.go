@@ -1,13 +1,13 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/francischacko/ecommerce/initializers"
+	"github.com/francischacko/ecommerce/middlewares"
 	"github.com/francischacko/ecommerce/models"
 
 	"github.com/gin-gonic/gin"
@@ -120,14 +120,6 @@ func Login(C *gin.Context) {
 	// return
 }
 
-func Validate(c *gin.Context) {
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "user is logged in.",
-	})
-
-}
-
 func GetAllUsers(c *gin.Context) {
 	var user []models.User
 	initializers.DB.Find(&user)
@@ -170,20 +162,8 @@ func UnblockUser(c *gin.Context) {
 }
 
 func ChangePassword(c *gin.Context) {
-	tokenString, err := c.Cookie("Authorization")
-	if err != nil {
-		c.AbortWithStatus(http.StatusUnauthorized)
-	}
-	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Don't forget to validate the alg is what you expect:
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte(os.Getenv("SECRET")), nil
-	})
-	claims := token.Claims.(jwt.MapClaims)
-	GetId := claims["sub"]
-	toInt := GetId.(float64)
+	id := middlewares.User(c)
+	toInt := int(id)
 	var body struct {
 		Password string
 	}

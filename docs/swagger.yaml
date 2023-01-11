@@ -1,0 +1,35 @@
+definitions:
+  models.Admin:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+info:
+  contact: {}
+  license: {}
+paths:
+  /admin/login:
+    post:
+      consumes:
+      - application/json
+      description: admin login
+      parameters:
+      - description: Admin ID
+        in: body
+        name: admin
+        required: true
+        schema:
+          $ref: '#/definitions/models.Admin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Admin'
+      summary: API to Login for admins
+      tags:
+      - admin
+swagger: "2.0"

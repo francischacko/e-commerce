@@ -3,14 +3,13 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"os"
 
 	"time"
 
 	"github.com/francischacko/ecommerce/initializers"
+	"github.com/francischacko/ecommerce/middlewares"
 	"github.com/francischacko/ecommerce/models"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
 )
 
 func AddCoupen(c *gin.Context) {
@@ -28,6 +27,7 @@ func AddCoupen(c *gin.Context) {
 		})
 		return
 	}
+
 	Coupen := models.Coupen{CoupenCode: body.CoupenCode, Discount: body.Discount, ExpiryDate: time.Now().Add(time.Hour * 24 * 30).Unix(), Status: body.Status, MinValue: body.MinValue}
 
 	result := initializers.DB.Create(&Coupen)
@@ -44,21 +44,8 @@ func AddCoupen(c *gin.Context) {
 	})
 }
 func RedeemCoupen(c *gin.Context) {
-	tokenString, err := c.Cookie("Authorization")
-	if err != nil {
-		c.AbortWithStatus(http.StatusUnauthorized)
-	}
-	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Don't forget to validate the alg is what you expect:
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte(os.Getenv("SECRET")), nil
-	})
 
-	claims := token.Claims.(jwt.MapClaims)
-	GetId := claims["sub"]
-	toInt := GetId.(float64)
+	toInt := middlewares.User(c)
 	Coupen := c.Query("code")
 	// Coupe,_ := strconv.Atoi(Coupen)
 	var coup models.Coupen

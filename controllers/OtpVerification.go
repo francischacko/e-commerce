@@ -14,13 +14,9 @@ import (
 	openapi "github.com/twilio/twilio-go/rest/verify/v2"
 )
 
-var TWILIO_ACCOUNT_SID string = "AC19ea134b942dda99a0d7bc1b5759e545"
-
-var TWILIO_AUTH_TOKEN string = "00cc6693f175ec2cc1480e6a7cc73535"
-var VERIFY_SERVICE_SID string = "VA8e6237bed979e0ec5e48c449628a1be5"
 var client *twilio.RestClient = twilio.NewRestClientWithParams(twilio.ClientParams{
-	Username: TWILIO_ACCOUNT_SID,
-	Password: TWILIO_AUTH_TOKEN,
+	Username: os.Getenv("TWILIO_ACCOUNT_SID"),
+	Password: os.Getenv("TWILIO_AUTH_TOKEN"),
 })
 
 var Phone string
@@ -51,7 +47,7 @@ func sendOtp(no string) {
 	params.SetChannel("sms")
 	fmt.Println(params)
 
-	resp, err := client.VerifyV2.CreateVerification(VERIFY_SERVICE_SID, params)
+	resp, err := client.VerifyV2.CreateVerification(os.Getenv("VERIFY_SERVICE_SID"), params)
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -74,7 +70,7 @@ func CheckOtp(c *gin.Context) {
 	params.SetTo(Phone)
 	params.SetCode(to)
 
-	resp, err := client.VerifyV2.CreateVerificationCheck(VERIFY_SERVICE_SID, params)
+	resp, err := client.VerifyV2.CreateVerificationCheck(os.Getenv("VERIFY_SERVICE_SID"), params)
 
 	if err != nil {
 		fmt.Println(err.Error())

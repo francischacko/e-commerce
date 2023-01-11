@@ -20,9 +20,14 @@ func CheckOut(C *gin.Context) {
 		})
 		return
 	}
-	// accessToken, err :=
-	c.GetAccessToken()
-	// fmt.Println(accessToken)
+	// 	accessToken, err := c.GetAccessToken()
+	//  var acses interface{}
+	// 	acses= accessToken
+	// 	// acess.
+	// 	// fmt.Println(accessToken)
+	// 	acs:=acses.(string)
+	// 	var bearer = "Bearer" + acs
+	// 	C.Header.Add("Authorization", bearer)
 
 	amount := paypalsdk.Amount{
 		Total:    "7.00",

@@ -1,15 +1,13 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 
 	"github.com/francischacko/ecommerce/initializers"
+	"github.com/francischacko/ecommerce/middlewares"
 	"github.com/francischacko/ecommerce/models"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
 )
 
 func AddUserAddress(c *gin.Context) {
@@ -29,20 +27,7 @@ func AddUserAddress(c *gin.Context) {
 		})
 
 	}
-	tokenString, err := c.Cookie("Authorization")
-	if err != nil {
-		c.AbortWithStatus(http.StatusUnauthorized)
-	}
-	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Don't forget to validate the alg is what you expect:
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte(os.Getenv("SECRET")), nil
-	})
-	claims := token.Claims.(jwt.MapClaims)
-	GetId := claims["sub"]
-	toInt := GetId.(float64)
+	toInt := middlewares.User(c)
 
 	useraddress := models.Address{
 		UserId:         toInt,
@@ -68,31 +53,23 @@ func EditUserAddress(c *gin.Context) {
 		State          string
 		DefaultAddress bool
 	}
-	params := c.Query("id")
-	bro, _ := strconv.Atoi(params)
-	var address models.Address
 	if c.Bind(&body) != nil {
 		c.JSON(400, gin.H{"error": "failed to bind while edit product"})
 		return
 	}
-	if body.StreetName != "" {
-		initializers.DB.Raw("update addresses SET street_name=? WHERE id=?", body.StreetName, bro).Scan(&address)
-	}
-	if body.StreetName != "" {
-		initializers.DB.Raw("update addresses SET address_line1=? WHERE id=?", body.AddressLine1, bro).Scan(&address)
-	}
-	if body.StreetName != "" {
-		initializers.DB.Raw("update addresses SET address_line2=? WHERE id=?", body.AddressLine2, bro).Scan(&address)
-	}
-	if body.StreetName != "" {
-		initializers.DB.Raw("update addresses SET city=? WHERE id=?", body.City, bro).Scan(&address)
-	}
-	if body.StreetName != "" {
-		initializers.DB.Raw("update addresses SET state=? WHERE id=?", body.State, bro).Scan(&address)
-	}
-	if !body.DefaultAddress {
-		initializers.DB.Raw("update addresses SET default_address=? WHERE id=?", body.StreetName, bro).Scan(&address)
-	}
+	params := c.Query("id")
+	bro, _ := strconv.Atoi(params)
+	var address models.Address
+	initializers.DB.First(&address, bro)
+	initializers.DB.Model(&address).Updates(models.Address{
+		StreetName:     body.StreetName,
+		AddressLine1:   body.AddressLine1,
+		AddressLine2:   body.AddressLine2,
+		City:           body.City,
+		State:          body.State,
+		DefaultAddress: body.DefaultAddress,
+	})
+
 }
 func DeleteUserAddress(c *gin.Context) {
 	params := c.Query("id")
@@ -102,20 +79,7 @@ func DeleteUserAddress(c *gin.Context) {
 
 // showuseraddress function shows all the existing addresses of that particular user[user who is logged in]
 func ShowUserAddress(c *gin.Context) {
-	tokenString, err := c.Cookie("Authorization")
-	if err != nil {
-		c.AbortWithStatus(http.StatusUnauthorized)
-	}
-	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Don't forget to validate the alg is what you expect:
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte(os.Getenv("SECRET")), nil
-	})
-	claims := token.Claims.(jwt.MapClaims)
-	GetId := claims["sub"]
-	toInt := GetId.(float64)
+	toInt := middlewares.User(c)
 	var address []models.Address
 	initializers.DB.Raw("select * from addresses where user_id=?", toInt).Scan(&address)
 	c.JSON(http.StatusOK, address)

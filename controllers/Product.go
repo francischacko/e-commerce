@@ -74,7 +74,7 @@ func EditProduct(g *gin.Context) {
 		Stocks             int
 	}
 
-	params := g.Param("id")
+	params := g.Query("id")
 	page, _ := strconv.Atoi(params)
 
 	var product models.Product
@@ -82,34 +82,26 @@ func EditProduct(g *gin.Context) {
 		g.JSON(400, gin.H{"error": "failed to bind while edit product"})
 		return
 	}
-	if body.CategoryId != 0 {
-		initializers.DB.Raw("update products SET CategoryId=? WHERE id=?", body.CategoryId, page).Scan(&product)
-	}
-	if body.ProductVariationId != 0 {
-		initializers.DB.Raw("update products SET ProductVariationId =? WHERE id=?", body.ProductVariationId, page).Scan(&product)
-	}
-	if body.Type != "" {
-		initializers.DB.Raw("update products SET type=? WHERE id=?", body.Type, page).Scan(&product)
-	}
-	if body.Name != "" {
-		initializers.DB.Raw("update products SET productname=? WHERE id=?", body.Name, page).Scan(&product)
-	}
-	if body.Description != "" {
-		initializers.DB.Raw("update products SET description=? WHERE id=?", body.Description, page).Scan(&product)
-	}
-	if body.Image != "" {
-		initializers.DB.Raw("update products SET immage=? WHERE id=?", body.Image, page).Scan(&product)
-	}
-	if body.Price != 0 {
-		initializers.DB.Raw("update products SET price=? WHERE id=?", body.Image, page).Scan(&product)
-	}
-	if body.Stocks != 0 {
-		initializers.DB.Raw("update products SET stocks=? WHERE id=?", body.Image, page).Scan(&product)
-	}
+	initializers.DB.First(&product, page)
+	initializers.DB.Model(&product).Updates(models.Product{
+		CategoryId:         body.CategoryId,
+		ProductVariationId: body.ProductVariationId,
+		Type:               body.Type,
+		Name:               body.Name,
+		Stocks:             body.Stocks,
+		Image:              body.Image,
+		Price:              body.Price,
+		Description:        body.Description,
+	})
+
 }
 
+// product listing with pagination , we can input page number to list products in different pages
 func ListProducts(c *gin.Context) {
+	pagestring := c.Query("page")
+	page, _ := strconv.Atoi(pagestring)
+	offset := (page - 1) * 3
 	var product []models.Product
-	initializers.DB.Find(&product)
+	initializers.DB.Limit(3).Offset(offset).Find(&product)
 	c.JSON(http.StatusOK, product)
 }
