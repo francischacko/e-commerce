@@ -38,6 +38,7 @@ func UserInfo(r *gin.Engine) {
 		user.GET("/checkout", middleware.UserAuth, controllers.CheckOut)
 		// coupen management
 		user.POST("/coupen", middleware.UserAuth, controllers.RedeemCoupen)
+		user.POST("/coupenvalidation", middleware.UserAuth, controllers.CoupenValidation)
 
 	}
 }
@@ -63,6 +64,8 @@ func AdminInfo(r *gin.Engine) {
 		//admin side management of orders
 		admin.GET("/listorders", middleware.AdminAuth, controllers.ListOrders)
 		admin.POST("/cancelorder", middleware.AdminAuth, controllers.CancelOrder)
+		// banner mangement
+		admin.POST("/addbanner", middleware.AdminAuth, controllers.AddBanner)
 		//coupen management
 		admin.POST("/addcoupen", middleware.AdminAuth, controllers.AddCoupen)
 	}

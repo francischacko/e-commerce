@@ -82,3 +82,19 @@ func RedeemCoupen(c *gin.Context) {
 		"discount": current,
 	})
 }
+func CoupenValidation(c *gin.Context) {
+	value := c.Query("value")
+	var coupon []models.Coupen
+	initializers.DB.Raw("select * from coupens where min_value <=?", value).Scan(&coupon)
+	if coupon == nil {
+		c.JSON(200, gin.H{
+			"msg": "No coupons available for the cart value of " + value,
+		})
+	} else {
+		c.JSON(200, gin.H{
+			"msg":  "coupons available",
+			"data": coupon,
+		})
+	}
+
+}
