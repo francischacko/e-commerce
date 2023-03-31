@@ -162,7 +162,7 @@ func UnblockUser(c *gin.Context) {
 }
 
 func ChangePassword(c *gin.Context) {
-	id := User(c)
+	id := middlewares.User(c)
 	toInt := int(id)
 	var body struct {
 		Password string
