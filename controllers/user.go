@@ -31,7 +31,7 @@ func Signup(C *gin.Context) {
 		return
 	}
 	// hash password
-	hash, err := bcrypt.GenerateFromxPassword([]byte(body.Password), 10){hkbodyss}
+	hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
 
 	if err != nil {
 		C.JSON(400, gin.H{
