@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/francischacko/ecommerce/controllers"
 	docs "github.com/francischacko/ecommerce/docs"
 	"github.com/francischacko/ecommerce/initializers"
 	"github.com/francischacko/ecommerce/routes"
@@ -23,8 +24,10 @@ func main() {
 	docs.SwaggerInfo.Host = "localhost:8000"
 	docs.SwaggerInfo.BasePath = ""
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
-	routes.UserInfo(Route)
+	routes.UserInfo(Route))
 	routes.AdminInfo(Route)
 	Route.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	Route.GET("/home", controllers.Hello)
 	Route.Run()
+
 }
