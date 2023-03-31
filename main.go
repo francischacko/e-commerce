@@ -27,7 +27,7 @@ func main() {
 	routes.UserInfo(Route)
 	routes.AdminInfo(Route)
 	Route.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	Route.GET("/home", controllers.Hello)
+// 	Route.GET("/home", controllers.Hello)
 	Route.Run()
 
 }
