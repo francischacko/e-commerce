@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/francischacko/ecommerce/initializers"
-	"github.com/francischacko/ecommerce/middlewares"
+
 	"github.com/francischacko/ecommerce/models"
 
 	"github.com/gin-gonic/gin"
@@ -31,7 +31,7 @@ func Signup(C *gin.Context) {
 		return
 	}
 	// hash password
-	hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
+	hash, err := bcrypt.GenerateFromxPassword([]byte(body.Password), 10){hkbodyss}
 
 	if err != nil {
 		C.JSON(400, gin.H{
@@ -162,7 +162,7 @@ func UnblockUser(c *gin.Context) {
 }
 
 func ChangePassword(c *gin.Context) {
-	id := middlewares.User(c)
+	id := User(c)
 	toInt := int(id)
 	var body struct {
 		Password string
