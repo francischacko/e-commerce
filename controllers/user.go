@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/francischacko/ecommerce/initializers"
-
+"github.com/francischacko/ecommerce/middlewares"
 	"github.com/francischacko/ecommerce/models"
 
 	"github.com/gin-gonic/gin"
