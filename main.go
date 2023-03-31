@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/francischacko/ecommerce/controllers"
+// 	"github.com/francischacko/ecommerce/controllers"
 	docs "github.com/francischacko/ecommerce/docs"
 	"github.com/francischacko/ecommerce/initializers"
 	"github.com/francischacko/ecommerce/routes"
