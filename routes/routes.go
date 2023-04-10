@@ -46,7 +46,7 @@ func UserInfo(r *gin.Engine) {
 func AdminInfo(r *gin.Engine) {
 	admin := r.Group("/admin")
 	{
-		admin.POST("/signup", controllers.SignupAdmin)
+		admin.POST("/signupe", controllers.SignupAdmin)
 		admin.POST("/login", controllers.LoginAdmin)
 
 		//user management
