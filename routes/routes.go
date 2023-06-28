@@ -14,13 +14,13 @@ func UserInfo(r *gin.Engine) {
 		user.POST("/login", controllers.Login)
 
 		//otp verification
-		user.GET("/sendOTP", controllers.Verify)
-		user.GET("/getOTP", controllers.CheckOtp)
+		user.POST("/sendOTP", controllers.Verify)
+		user.POST("/getOTP", controllers.CheckOtp)
+
 		//Product listing
 		user.GET("/listproducts", middleware.UserAuth, controllers.ListProducts)
 		//cart management of user
 		user.POST("/addtocart", middleware.UserAuth, controllers.AddToCart)
-		user.GET("/toremovecart", middleware.UserAuth, controllers.ToRemoveCart)
 		user.GET("/listcart", middleware.UserAuth, controllers.ListCart)
 		user.PATCH("/quantityupdation", middleware.UserAuth, controllers.QuantityUpdation)
 		user.DELETE("/cartitemdeletion", middleware.UserAuth, controllers.CartItemDeletion)
@@ -34,11 +34,16 @@ func UserInfo(r *gin.Engine) {
 		user.GET("/listordersuser", middleware.UserAuth, controllers.ListOrders)
 		user.POST("/placeorder", middleware.UserAuth, controllers.PlaceOrder)
 		user.POST("/cancelorderuser", middleware.UserAuth, controllers.CancelOrder)
-		user.POST("/return", middleware.UserAuth, controllers.ReturnOrder)
-		user.GET("/checkout", middleware.UserAuth, controllers.CheckOut)
+		user.PUT("/return", middleware.UserAuth, controllers.ReturnOrder)
+
 		// coupen management
 		user.POST("/coupen", middleware.UserAuth, controllers.RedeemCoupen)
 		user.POST("/coupenvalidation", middleware.UserAuth, controllers.CoupenValidation)
+
+		//Payment
+		user.GET("/payment-success", middleware.UserAuth, controllers.RazorpaySuccess)
+		user.GET("/success", middleware.UserAuth, controllers.Success)
+		user.GET("/razorpay", middleware.UserAuth, controllers.RazorPay)
 
 	}
 }
@@ -55,10 +60,12 @@ func AdminInfo(r *gin.Engine) {
 		admin.PATCH("/unblock/:id", middleware.AdminAuth, controllers.UnblockUser)
 		//category management
 		admin.POST("/addcategory", middleware.AdminAuth, controllers.AddCategory)
+		admin.GET("/listcategories", middleware.AdminAuth, controllers.ListCategories)
 		admin.PATCH("/editcategory/:id", middleware.AdminAuth, controllers.EditCategory)
 		admin.DELETE("/deletecategory", middleware.AdminAuth, controllers.DeleteCategory)
 		//admin side management of products
 		admin.POST("/addproduct", middleware.AdminAuth, controllers.AddProduct)
+		admin.GET("/listproducts", middleware.AdminAuth, controllers.ListProducts)
 		admin.PATCH("/editproduct", middleware.AdminAuth, controllers.EditProduct)
 		admin.DELETE("/deleteproduct", middleware.AdminAuth, controllers.DeleteProduct)
 		//admin side management of orders

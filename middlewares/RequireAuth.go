@@ -3,9 +3,9 @@ package middlewares
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
+	"github.com/francischacko/ecommerce/config"
 	"github.com/francischacko/ecommerce/initializers"
 	"github.com/francischacko/ecommerce/models"
 
@@ -33,7 +33,8 @@ func UserAuth(c *gin.Context) {
 		}
 
 		// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
-		return []byte(os.Getenv("SECRET")), nil
+		secret := config.EnvConf.JWT
+		return []byte(secret), nil
 	})
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
@@ -84,7 +85,8 @@ func AdminAuth(c *gin.Context) {
 		}
 
 		// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
-		return []byte(os.Getenv("SECRET")), nil
+		secret := config.EnvConf.JWT
+		return []byte(secret), nil
 	})
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {

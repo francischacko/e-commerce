@@ -17,7 +17,12 @@ var Qty int
 
 func AddToCart(c *gin.Context) {
 
-	id := middlewares.User(c)
+	id, err := middlewares.User(c)
+	if err != nil {
+
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		return
+	}
 	ToInt := int(id)
 	cart := models.ShoppingCart{
 		UserId: ToInt,
@@ -51,7 +56,7 @@ func AddToCart(c *gin.Context) {
 	}
 	var StockCheck int
 	CartItems := models.ShoppingCartItem{Cid: bro, ProductItemId: body.ProductItemId, Quantity: body.Quantity, Total: body.Quantity * price}
-	initializers.DB.Raw("SELECT stocks FROM products where id=? ", body.ProductItemId).Scan(&StockCheck)
+	initializers.DB.Raw("SELECT stocks FROM products WHERE id=? ", body.ProductItemId).Scan(&StockCheck)
 
 	if body.Quantity > StockCheck {
 
@@ -86,11 +91,6 @@ func AddToCart(c *gin.Context) {
 	initializers.DB.Raw("update shopping_cart_items set total=? where id in(select max(id) from shopping_cart_items)", resulta).Scan(&update)
 }
 
-func ToRemoveCart(c *gin.Context) {
-	toInt := middlewares.User(c)
-	initializers.DB.Raw("DELETE cid FROM shopping_carts  WHERE user_id=?", toInt)
-}
-
 func QuantityUpdation(c *gin.Context) {
 
 	var body struct {
@@ -112,7 +112,12 @@ func QuantityUpdation(c *gin.Context) {
 }
 
 func ListCart(c *gin.Context) {
-	toInt := middlewares.User(c)
+	toInt, err := middlewares.User(c)
+	if err != nil {
+
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		return
+	}
 	var cartitem []models.ShoppingCartItem
 	initializers.DB.Raw("select * from shopping_cart_items where cid=?", toInt).Scan(&cartitem)
 	c.JSON(http.StatusOK, gin.H{
@@ -133,7 +138,7 @@ func CartItemDeletion(c *gin.Context) {
 	}
 	if c.Bind(&body) != nil {
 		c.JSON(400, gin.H{
-			"error": "failed to bind ShoppingCartItem body for quantity updation",
+			"error": "failed to bind ShoppingCartItem body for cart item deletion",
 		})
 		return
 	}

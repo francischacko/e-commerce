@@ -3,9 +3,9 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
+	"github.com/francischacko/ecommerce/config"
 	"github.com/francischacko/ecommerce/initializers"
 	"github.com/francischacko/ecommerce/models"
 	"github.com/gin-gonic/gin"
@@ -14,15 +14,26 @@ import (
 	openapi "github.com/twilio/twilio-go/rest/verify/v2"
 )
 
-var client *twilio.RestClient = twilio.NewRestClientWithParams(twilio.ClientParams{
-	Username: os.Getenv("TWILIO_ACCOUNT_SID"),
-	Password: os.Getenv("TWILIO_AUTH_TOKEN"),
-})
+var (
+	uname      string
+	pword      string
+	serviceSid string
+
+	client *twilio.RestClient
+)
 
 var Phone string
 
 func Verify(c *gin.Context) {
 
+	uname = config.EnvConf.Twillio1
+	pword = config.EnvConf.Twillio2
+	serviceSid = config.EnvConf.Twillio3
+	client = twilio.NewRestClientWithParams(twilio.ClientParams{
+
+		Username: uname,
+		Password: pword,
+	})
 	params := c.Query("phone")
 	var user models.User
 	initializers.DB.First(&user, "phone= ?", params)
@@ -42,12 +53,13 @@ func Verify(c *gin.Context) {
 }
 
 func sendOtp(no string) {
+
 	params := &openapi.CreateVerificationParams{}
+
 	params.SetTo(no)
 	params.SetChannel("sms")
-	fmt.Println(params)
-
-	resp, err := client.VerifyV2.CreateVerification(os.Getenv("VERIFY_SERVICE_SID"), params)
+	serviceSid = config.EnvConf.Twillio3
+	resp, err := client.VerifyV2.CreateVerification(serviceSid, params)
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -58,31 +70,30 @@ func sendOtp(no string) {
 	}
 }
 
-// func CodeVerify(c *gin.Context) {
-// 	params := c.Param("code")
-// 	checkOtp(params)
-// }
-
 func CheckOtp(c *gin.Context) {
 	to := c.Query("code")
 	var user models.User
 	params := &openapi.CreateVerificationCheckParams{}
 	params.SetTo(Phone)
 	params.SetCode(to)
-
-	resp, err := client.VerifyV2.CreateVerificationCheck(os.Getenv("VERIFY_SERVICE_SID"), params)
+	serviceSid = config.EnvConf.Twillio3
+	resp, err := client.VerifyV2.CreateVerificationCheck(serviceSid, params)
 
 	if err != nil {
 		fmt.Println(err.Error())
 	} else if *resp.Status == "approved" {
-		fmt.Println("Correct!")
+		fmt.Println("Code is Correct!")
+		c.JSON(http.StatusOK, gin.H{
+			"message": "code has been verified",
+		})
 		// generate JWT token
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 			"sub": user.Id,
 			"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
 		})
 		// Sign and get the complete encoded token as a string using the secret
-		tokenString, err := token.SignedString([]byte(os.Getenv("SECRET")))
+		secret := config.EnvConf.JWT
+		tokenString, err := token.SignedString([]byte(secret))
 		if err != nil {
 			c.JSON(400, gin.H{
 				"error": "failed to create token for user ",

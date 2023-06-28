@@ -27,7 +27,11 @@ func AddUserAddress(c *gin.Context) {
 		})
 
 	}
-	toInt := middlewares.User(c)
+	toInt, err := middlewares.User(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		return
+	}
 
 	useraddress := models.Address{
 		UserId:         toInt,
@@ -72,14 +76,23 @@ func EditUserAddress(c *gin.Context) {
 
 }
 func DeleteUserAddress(c *gin.Context) {
-	params := c.Query("id")
-	bro, _ := strconv.Atoi(params)
-	initializers.DB.Raw("Delete id from addresses where id=?", bro)
+	id, err := middlewares.User(c)
+	if err != nil {
+
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		return
+	}
+	var address models.Address
+	initializers.DB.Raw("DELETE FROM addresses WHERE id=?", id).Scan(&address)
 }
 
 // showuseraddress function shows all the existing addresses of that particular user[user who is logged in]
 func ShowUserAddress(c *gin.Context) {
-	toInt := middlewares.User(c)
+	toInt, err := middlewares.User(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		return
+	}
 	var address []models.Address
 	initializers.DB.Raw("select * from addresses where user_id=?", toInt).Scan(&address)
 	c.JSON(http.StatusOK, address)
@@ -89,7 +102,9 @@ func ChooseAddress(c *gin.Context) {
 	params := c.Query("id")
 	inp, _ := strconv.Atoi(params)
 	var choose models.Address
-	initializers.DB.Raw("select * from addresses where id=?", inp).Scan(&choose)
+
+	initializers.DB.Raw("UPDATE addresses set default_address=? WHERE id=?", true, inp).Scan(&choose)
+	initializers.DB.Raw("SELECT * FROM addresses WHERE id=?", inp).Scan(&choose)
 	c.JSON(200, gin.H{
 		"address choosed": choose,
 	})

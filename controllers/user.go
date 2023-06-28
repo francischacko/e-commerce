@@ -2,12 +2,12 @@ package controllers
 
 import (
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
+	"github.com/francischacko/ecommerce/config"
 	"github.com/francischacko/ecommerce/initializers"
-"github.com/francischacko/ecommerce/middlewares"
+	"github.com/francischacko/ecommerce/middlewares"
 	"github.com/francischacko/ecommerce/models"
 
 	"github.com/gin-gonic/gin"
@@ -15,6 +15,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// @Summary User signup.
+// @Description .Can provide user details to create an accout , later used to login
+// @Tags User signup and login
+// @Accept application/json
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Router / [post]
 func Signup(C *gin.Context) {
 	// get the email and password required
 	var body struct {
@@ -101,7 +108,8 @@ func Login(C *gin.Context) {
 		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
 	})
 	// Sign and get the complete encoded token as a string using the secret
-	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET")))
+	secret := config.EnvConf.JWT
+	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {
 		C.JSON(400, gin.H{
 			"error": "failed to create token for user ",
@@ -138,12 +146,16 @@ var page int
 func BlockUser(c *gin.Context) {
 
 	params := c.Param("id")
+
 	page, _ = strconv.Atoi(params)
 	var user models.User
-	initializers.DB.Raw("update users SET status=true WHERE id=?", page).Scan(&user)
+	var stat string
+	initializers.DB.Raw("UPDATE users SET status=true WHERE id=?", page).Scan(&user)
+	initializers.DB.Raw("SELECT status FROM users WHERE id=?", page).Scan(&stat)
+
 	c.JSON(http.StatusOK, gin.H{
 
-		"status": user.Status,
+		"Block status": stat,
 	})
 
 }
@@ -153,16 +165,22 @@ func UnblockUser(c *gin.Context) {
 	params := c.Param("id")
 	page, _ = strconv.Atoi(params)
 	var user models.User
-	initializers.DB.Raw("update users SET status=false WHERE id=?", page).Scan(&user)
+	var stat string
+	initializers.DB.Raw("UPDATE users SET status=false WHERE id=?", page).Scan(&user)
+	initializers.DB.Raw("SELECT status FROM users WHERE id=?", page).Scan(&stat)
 	c.JSON(http.StatusOK, gin.H{
 
-		"status": user.Status,
+		"Block status": stat,
 	})
 
 }
 
 func ChangePassword(c *gin.Context) {
-	id := middlewares.User(c)
+	id, err := middlewares.User(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		return
+	}
 	toInt := int(id)
 	var body struct {
 		Password string

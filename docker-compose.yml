@@ -1,0 +1,26 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: francis
+      POSTGRES_PASSWORD: 7510881402
+      POSTGRES_DB: ecommerce
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - 5433:5432
+
+  web:
+    build: .
+    command: go run main.go
+    restart: always
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+
+volumes:
+  db-data:

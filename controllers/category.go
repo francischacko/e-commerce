@@ -36,6 +36,18 @@ func AddCategory(c *gin.Context) {
 	})
 }
 
+func ListCategories(c *gin.Context) {
+	var cat []models.Category
+	initializers.DB.Find(&cat)
+	for _, i := range cat {
+		c.JSON(http.StatusOK, gin.H{
+			"Category id ":  i.CategoryId,
+			"Category name": i.CategoryName,
+		})
+
+	}
+}
+
 func DeleteCategory(c *gin.Context) {
 	var body struct {
 		Id uint
@@ -47,7 +59,7 @@ func DeleteCategory(c *gin.Context) {
 		return
 	}
 	var category models.Category
-	initializers.DB.Raw(" DELETE FROM categories WHERE id=?", body.Id).Scan(&category)
+	initializers.DB.Raw(" DELETE FROM categories WHERE category_id=?", body.Id).Scan(&category)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "selected category is deleted",
@@ -70,6 +82,9 @@ func EditCategory(g *gin.Context) {
 	}
 	var EditCategory models.Category
 	if body.CategoryName != "" {
-		initializers.DB.Raw("update categories SET Categoryname=? WHERE id=?", body.CategoryName, page).Scan(&EditCategory)
+		initializers.DB.Raw("UPDATE categories SET category_name=? WHERE category_id=?", body.CategoryName, page).Scan(&EditCategory)
+		g.JSON(http.StatusOK, gin.H{
+			"message": "category name is edited",
+		})
 	}
 }

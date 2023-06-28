@@ -45,7 +45,12 @@ func AddCoupen(c *gin.Context) {
 }
 func RedeemCoupen(c *gin.Context) {
 
-	toInt := middlewares.User(c)
+	toInt, err := middlewares.User(c)
+	if err != nil {
+
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		return
+	}
 	Coupen := c.Query("code")
 	// Coupe,_ := strconv.Atoi(Coupen)
 	var coup models.Coupen

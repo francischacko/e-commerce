@@ -1,10 +1,11 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
-	"os"
 	"time"
 
+	"github.com/francischacko/ecommerce/config"
 	"github.com/francischacko/ecommerce/initializers"
 	"github.com/francischacko/ecommerce/models"
 
@@ -15,6 +16,7 @@ import (
 
 func SignupAdmin(C *gin.Context) {
 	// get the email and password required
+	fmt.Println("hello")
 	var body struct {
 		Email    string
 		Password string
@@ -52,14 +54,6 @@ func SignupAdmin(C *gin.Context) {
 	})
 }
 
-// @Summary		API to Login for admins
-// @Description	admin login
-// @Tags			admin
-// @Accept			json
-// @Produce		json
-// @Param			admin	body		models.Admin	true	"Admin ID"
-// @Success		200		{object}	models.Admin
-// @Router			/admin/login [post]
 func LoginAdmin(C *gin.Context) {
 	// get email and password required off the body
 	var body struct {
@@ -99,7 +93,8 @@ func LoginAdmin(C *gin.Context) {
 		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
 	})
 	// Sign and get the complete encoded token as a string using the secret
-	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET")))
+	secret := config.EnvConf.JWT
+	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {
 		C.JSON(400, gin.H{
 			"error": "failed to create token for admin",
@@ -132,14 +127,14 @@ func CancelOrder(c *gin.Context) {
 	var cancelledorderquantity int
 	initializers.DB.Raw("select quantity from shop_orders where id=?", id).Scan(&cancelledorderquantity)
 	var productquantity int
-	initializers.DB.Raw("select quantity from products where id=?", id).Scan(&productquantity)
+	initializers.DB.Raw("select stocks from products where id=?", id).Scan(&productquantity)
 	quantitytobeadded := productquantity + cancelledorderquantity
 	var prod models.Product
-	initializers.DB.Raw("update products set quantity=?", quantitytobeadded).Scan(&prod)
+	initializers.DB.Raw("update products set stocks=?", quantitytobeadded).Scan(&prod)
 	c.JSON(200, gin.H{
 		"message": "Order has been cancelled and updated the inventory",
 	})
 	change := "Order cancelled"
 	var ord models.ShopOrders
-	initializers.DB.Raw("update shop_orders set status=? where id=?", change, id).Scan(ord)
+	initializers.DB.Raw("update shop_orders set status=? where id=?", change, id).Scan(&ord)
 }

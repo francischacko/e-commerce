@@ -18,6 +18,7 @@ func SyncDatabase() {
 		&models.Coupen{},
 		&models.TotalOrders{},
 		&models.Wallet{},
+		&models.Banner{},
 	)
 
 }

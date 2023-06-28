@@ -10,7 +10,7 @@ type ShoppingCart struct {
 type ShoppingCartItem struct {
 	gorm.Model
 	Cid           int
-	ProductItemId int `gorm:"foriegnKey"`
+	ProductItemId int `json:"productitemid"`
 	ProductName   string
 	Quantity      int
 	Total         int

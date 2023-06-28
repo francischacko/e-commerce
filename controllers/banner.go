@@ -16,22 +16,22 @@ func AddBanner(c *gin.Context) {
 
 	if c.Bind(&body) != nil {
 		c.JSON(400, gin.H{
-			"error": "failed to bind Product body",
+			"error": "failed to bind banner body",
 		})
 		return
 	}
 
-	Banner := models.Banner{Name: body.Name, OfferPeriod: body.Name}
+	Banner := models.Banner{Name: body.Name, OfferPeriod: body.OfferPeriod}
 	result := initializers.DB.Create(&Banner)
 
 	if result.Error != nil {
 		c.JSON(400, gin.H{
-			"error": "failed to add Product",
+			"error": "failed to add banner",
 		})
 		return
 	}
 	//respond
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Product added",
+		"message": "Banner added",
 	})
 }

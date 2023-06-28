@@ -1,8 +1,10 @@
 package main
 
 import (
-// 	"github.com/francischacko/ecommerce/controllers"
-	docs "github.com/francischacko/ecommerce/docs"
+	"log"
+
+	"github.com/francischacko/ecommerce/config"
+	_ "github.com/francischacko/ecommerce/docs"
 	"github.com/francischacko/ecommerce/initializers"
 	"github.com/francischacko/ecommerce/routes"
 	"github.com/gin-gonic/gin"
@@ -11,23 +13,38 @@ import (
 )
 
 func init() {
-	initializers.Loadvariables()
+	config.InitEnvConfigs()
 	initializers.ConnectToDb()
 	initializers.SyncDatabase()
+
 }
+
+// @title E-Commerce API
+// @version 2.0
+// @description This is a REST API based on e-commerce logic, done as a personal project
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host localhost:3000
+// @BasePath /
+// @schemes http
 
 func main() {
 	Route := gin.Default()
-	docs.SwaggerInfo.Title = "E-Commerce API"
-	docs.SwaggerInfo.Description = "E-commerce API which in written in GO."
-	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = "localhost:8000"
-	docs.SwaggerInfo.BasePath = ""
-	docs.SwaggerInfo.Schemes = []string{"http", "https"}
+	Route.LoadHTMLGlob("template/*.html")
 	routes.UserInfo(Route)
 	routes.AdminInfo(Route)
-	Route.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-// 	Route.GET("/home", controllers.Hello)
-	Route.Run()
+	url := ginSwagger.URL("http://localhost:3000/swagger/doc.json") // The url pointing to API definition
+	Route.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
+	prt := config.EnvConf.LocalServerPort
+	if err := Route.Run(prt); err != nil {
+		log.Fatal("Error while starting server")
+	}
 
 }

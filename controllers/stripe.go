@@ -3,9 +3,9 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 
+	"github.com/francischacko/ecommerce/config"
 	"github.com/francischacko/ecommerce/initializers"
 	"github.com/francischacko/ecommerce/models"
 	"github.com/gin-gonic/gin"
@@ -14,7 +14,6 @@ import (
 )
 
 func StripePayment(c *gin.Context) {
-	// var user models.User
 
 	var payment models.Charge
 	c.BindJSON(&payment)
@@ -24,7 +23,7 @@ func StripePayment(c *gin.Context) {
 	initializers.DB.Raw("select product_name from shopping_cart_items where cid=?", ToInt).Scan(&pname)
 	fmt.Println(ToInt)
 	descript := strings.Join(pname, ",")
-	apiKey := os.Getenv("STRIPE_KEY")
+	apiKey := config.EnvConf.StripeKey
 	fmt.Println(apiKey + "asads")
 	stripe.Key = apiKey
 	_, err := charge.New(&stripe.ChargeParams{
